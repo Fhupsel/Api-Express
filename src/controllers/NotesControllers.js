@@ -30,6 +30,22 @@ class NotesControllers{
 
     response.json()
   }
+
+  async show(request, response){
+    const {note_id} = request.params
+
+    const note = await knex('notes').select()
+    .where('id', note_id).first()  
+
+    const tags = await knex('tags').where('note_id', note.id).orderBy('name')
+    const links = await knex('links').where('note_id', note.id).orderBy('created_at')
+    
+    response.status(200).send({
+      ...note,
+      tags,
+      links
+    })
+  }
 }
 
 module.exports = NotesControllers

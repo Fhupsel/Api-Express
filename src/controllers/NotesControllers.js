@@ -46,6 +46,40 @@ class NotesControllers{
       links
     })
   }
+
+  async delete(request, response){
+    const {note_id} = request.params
+    await knex("notes").delete().where('id', note_id)
+    return response.status(204).json("Note deleted with sucess")
+  }
+
+  async listByUser(request, response) {
+    const { user_id } = request.params
+    const {title} = request.query
+  
+    try {
+      const notes = await knex("notes").select().where("user_id", user_id)
+  
+      const noteDetailsPromises = notes.map(async (note) => {
+        const note_id = note.id
+        const tags = await knex("tags").select().where('note_id', note_id)
+        const links = await knex("links").select().where('note_id', note_id)
+        return {
+          note,
+          tags,
+          links
+        }
+      })
+  
+      const noteDetails = await Promise.all(noteDetailsPromises)
+  
+      return response.status(200).json(noteDetails)
+    } catch (error) {
+      console.error(error)
+      return response.status(500).json({ error: "Internal server error" })
+    }
+  }
+  
 }
 
 module.exports = NotesControllers

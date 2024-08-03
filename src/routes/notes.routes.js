@@ -9,6 +9,6 @@ const noteControllers = new NotesControllers()
 notesRouters.post('/:user_id', noteControllers.create)
 notesRouters.get('/:note_id', noteControllers.show)
 notesRouters.delete('/:note_id', noteControllers.delete)
-notesRouters.get('/list/:user_id', noteControllers.listByUser)
+notesRouters.get('/', noteControllers.index)
 
 module.exports = notesRouters 

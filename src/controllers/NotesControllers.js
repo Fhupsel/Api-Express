@@ -53,31 +53,28 @@ class NotesControllers{
     return response.status(204).json("Note deleted with sucess")
   }
 
-  async listByUser(request, response) {
-    const { user_id } = request.params
-    const {title} = request.query
-  
-    try {
-      const notes = await knex("notes").select().where("user_id", user_id)
-  
-      const noteDetailsPromises = notes.map(async (note) => {
-        const note_id = note.id
-        const tags = await knex("tags").select().where('note_id', note_id)
-        const links = await knex("links").select().where('note_id', note_id)
-        return {
-          note,
-          tags,
-          links
-        }
-      })
-  
-      const noteDetails = await Promise.all(noteDetailsPromises)
-  
-      return response.status(200).json(noteDetails)
-    } catch (error) {
-      console.error(error)
-      return response.status(500).json({ error: "Internal server error" })
+  async index(request, response){
+    const {user_id, title, tags} = request.query
+
+    let notes
+    
+    if(tags){
+      const filterTags = tags.split(',').map(tag => tag.trim())
+      notes = await knex("tags")
+      .select(['notes.id', 'notes.title', 'notes.user_id'])
+      .where('notes.user_id', user_id)
+      .whereLike('notes.title', `%${title}%`)
+      .whereIn('name', filterTags)
+      .innerJoin('notes', 'notes.id', 'tags.note_id')
+      .orderBy('notes.title')
+    } else{
+        notes = await knex("notes")
+        .where('user_id', user_id)
+        .whereLike('title', `%${title}%`)
+        .orderBy('updated_at')
     }
+
+    return response.status(200).json(notes)
   }
   
 }
